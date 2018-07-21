@@ -8,7 +8,7 @@ const app = express();
 app.use(morgan("common")); //import morgan for logging
 app.use(express.json()); // import express
 
-app.use("/blog-posts", blogPostsRouter); // routing requests
+// app.use("/blog-posts", blogPostsRouter); // routing requests
 
 let server;
 

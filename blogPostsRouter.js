@@ -3,8 +3,6 @@ const router = express.Router();
 
 const { BlogPosts } = require("./models");
 
-// convenience function for generating lorem text for blog
-// posts we initially add below
 function lorem() {
   return (
     "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod " +
@@ -16,29 +14,80 @@ function lorem() {
   );
 }
 
-// seed some posts so initial GET requests will return something
-BlogPosts.create("10 things -- you won't believe #4", lorem(), "Billy Bob");
-BlogPosts.create("Lions and tigers and bears oh my", lorem(), "Lefty Lil");
 
-// add endpoint for GET. It should call `BlogPosts.get()`
-// and return JSON objects of stored blog posts.
-// send back JSON representation of all blog posts
-// on GET requests to root
+///title, content, author needed
 
-// add endpoint for POST requests, which should cause a new
-// blog post to be added (using `BlogPosts.create()`). It should
-// return a JSON object representing the new post (including
-// the id, which `BlogPosts` will create. This endpoint should
-// send a 400 error if the post doesn't contain
-// `title`, `content`, and `author`
+BlogPosts.create("20 UK Rappers to Listen To in 2018", lorem(), "John Right");
+BlogPosts.create("20 California Rappers Who are Broke in 2018", lorem(), "Meghan Wrong");
 
-// add endpoint for PUT requests to update blogposts. it should
-// call `BlogPosts.update()` and return the updated post.
-// it should also ensure that the id in the object representing
-// the post matches the id of the path variable, and that the
-// following required fields are in request body: `id`, `title`,
-// `content`, `author`, `publishDate`
+router.get("/", (req, res) => {
+	res.json(BlogPosts.get());
+});
 
-// add endpoint for DELETE requests. These requests should
-// have an id as a URL path variable and call
-// `BlogPosts.delete()`
+
+//router makes a request to the endpoint
+///gets all the blogposts created and returns the response as JSON object
+//to the endpoint 
+
+router.post("/", (req, res) => {
+	const requiredFields = ["title", "content", "author"]; /// required fields needed to post 
+	for (let i = 0; i < requiredFields.length; i++) {
+		const field = requiredFields[i];
+		if (!(field in req.body)) { // if field in request body is false
+			const message = `Missing \`${field}\` in request body`;
+			console.error(message); 
+			return res.status(400).send(message);
+		}
+	}
+
+	// if request succeeds, a json object is created with title content and author
+
+	const item = BlogPosts.create(
+		req.body.title, 
+		req.body.content, 
+		req.body.author
+		);
+		res.status(201).json(item); //// status is 201 good and item is passed and coverted to json 
+	});
+
+router.put("/:id", (req, res) => {
+	const requiredFields = ["title", "author", "content"];
+	for (let i = 0; i < requiredFields.length; i++) {
+		const field = requiredFields[i];
+		if (!(field) in req.body) {
+			const message = `Missing \`${field}\` in request body`;
+			console.log.error(message);
+			return res.status(400).send(message);
+		}
+	}
+
+	// two conditionals for put - must have all the fields and must have the
+	// correct id
+
+	if (req.params.id !== req.body.id) {
+		const message = `Request path id (${req.params.id}) and request body id and (${req.body.id}) must match`;
+    console.error(message);
+    return res.status(400).send(message);
+
+   	}
+
+   	console.log(`Updating blog post id: \`${req.params.id}\``); /// BACK TICKS 
+
+   	const blogPostEntry = BlogPosts.update({
+   		id: req.params.id,
+   		title: req.body.title,
+   		content: req.body.content,
+   		author: req.body.title,
+   		publishDate: req.body.publishDate
+   	});
+   	console.log("hello");
+   	res.status(200).send(blogPostEntry);
+});
+
+router.delete("/:id", (req, res) => {
+	BlogPosts.delete(req.params.id);
+	console.log(`Deleted blog post with id \`${req.params.id}\``);
+	res.status(204).end();
+});
+
+module.exports = router;
